@@ -8,6 +8,9 @@ stringData:
   username: user # Required. Your NAS username.
   password: 0000 # Required. Your NAS password.
   storageAddress: 0.0.0.0 # Required. Your NAS IP address.
+  https: false # Optional. Whether to enable a secure connection. Default: False.
+  port: 8080 # Optional. Specify the port. Default: 8080.
+  trustedCACertificate: <Base64-encoded-trusted-ca-certificate-for-backend> # Optional. Base64-encoded value of trusted CA certificate. Used for certificate-based authentication. 
 ---
 apiVersion: trident.qnap.io/v1
 kind: TridentBackendConfig

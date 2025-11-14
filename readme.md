@@ -32,7 +32,7 @@ Figure 1. Process of creating a volume with the QNAP CSI driver.
 ### CSI Driver Version and Compatibility  
 | **Driver Version** | **Supported Kubernetes Versions** | **Supported QNAP NAS Operating Systems**                |  
 |------------------- | --------------------------------- | ------------------------------------- | 
-| v1.5.1             | v1.24 to v1.32                    | QTS 5.0.0 or later<br>QuTS hero h5.0.0 or later|
+| v1.5.2             | v1.24 to v1.32                    | QTS 5.1.0 or later<br>QuTS hero h5.1.0 or later|
  
 ### Supported Host Operating Systems  
 - Debian 8 or later  
@@ -49,7 +49,7 @@ Figure 1. Process of creating a volume with the QNAP CSI driver.
 <a name="Supported-Features"></a> 
 ## Supported Features 
 
-* Protocol: iSCSI, Samba
+* Protocol: iSCSI, SMB
 * Access mode: ReadWriteOnce, ReadWriteMany
 * Cloning  
 * Snapshots
@@ -62,8 +62,10 @@ Figure 1. Process of creating a volume with the QNAP CSI driver.
 ### Preinstallation Checklist
 
 * Ensure that both the Kubernetes and the QNAP NAS operating system versions are supported.
+
 > [!NOTE] 
-> Minikube is not supported.
+> - Minikube is not supported.
+> - On Rancher-managed clusters, the driver auto-detects the Rancher environment and completes all Rancher-specific tasks automatically.  
 * If the iSCSI protocol is utilized. Install open-iscsi in Kubernetes by running the following command in both the master and worker nodes: 
   ``` 
   sudo apt install open-iscsi 
@@ -97,6 +99,7 @@ Figure 1. Process of creating a volume with the QNAP CSI driver.
     A successful test will display packet responses, indicating connectivity. The pod will automatically delete itself after completion.
 </details>
 
+    
 ### Install the QNAP CSI Plugin 
 1. Clone the git repository.  
     ``` 
@@ -202,6 +205,9 @@ Please refer to the following examples.
         username: user # Required. Your NAS username.
         password: 0000 # Required. Your NAS password.
         storageAddress: 0.0.0.0 # Required. Your NAS IP address.
+        https: false # Optional. Whether to enable a secure connection. Default: False.
+        port: 8080 # Optional. Specify the port. Default: 8080.
+        trustedCACertificate: <Base64-encoded-trusted-ca-certificate-for-backend> # Optional. Base64-encoded value of trusted CA certificate. Used for certificate-based authentication. 
       ---
       apiVersion: trident.qnap.io/v1
       kind: TridentBackendConfig
@@ -242,6 +248,9 @@ Please refer to the following examples.
           "storageAddress": "0.0.0.0",
           "username": "user",
           "password": "0000",
+          "https": "false",
+          "port": "8080",
+          "trustedCACertificate": "<Base64-encoded-trusted-ca-certificate-for-backend>" 
           "networkInterfaces": ["Adapter1"], 
           "debugTraceFlags": {"method": true},
           "storage": [
@@ -267,8 +276,9 @@ Please refer to the following examples.
 
 2. In the YAML or JSON file, configure the following based on your NAS settings and usage requirements.
     * Specify the correct NAS `user`, `password`, and `IP address`.
+    * Optionally enable HTTPS and configure the service port and trusted CA certificate according to your requirements.
     * Name the secret and backend.
-    * Optional: Set the network portal in the `networkInterfaces` field.
+    * Optional: Set the network portal in the `networkInterfaces`.
 
       > **Note:**<br>
       > Network settings support physical and virtual adapters. In the `networkInterfaces` field, assign an interface name (e.g., \["Adapter1"\]) or leave it empty to default to `storageAddress`. To view the available adapters on your NAS, open Network & Virtual Switch and go to "Interfaces".
@@ -306,7 +316,7 @@ stringData:
 ### StorageClass 
 1. Create or edit the YAML file.<br>
     
-    iSCSI: `Samples/StorageClass/sc_iscsi_sample.yaml`.<br>
+    **iSCSI Protocol**: `Samples/StorageClass/sc_iscsi_sample.yaml`.<br>
     
     Example:
     ```yaml  
@@ -318,9 +328,11 @@ stringData:
     parameters:
       selector: "performance=performance1" # Required. Corresponds to the labels in the virtual pool.
       fsType: "ext4" # Optional. You can choose to enter ext4 (default), xfs, or ext3.
+      replacementTimeout: '120' # Optional. Define the iSCSI timeout, with a default value of 120 seconds 
     allowVolumeExpansion: true
     ``` 
-    Samba: `Samples/StorageClass/sc_smb_sample.yaml`.<br>
+    
+    **SMB Protocol**: `Samples/StorageClass/sc_smb_sample.yaml`.<br>
     
     Example:
     
@@ -543,10 +555,11 @@ storageClassName: storageclass1
 >[!Note]
 >Due to filesystem limitations in QTS, the capacity shown in "Storage & Snapshot" may be slightly smaller than the specified size when creating a shared folder. For `resources.requests.storage`, enter either the specified size or the displayed size. 
 For example: 
-    - Specified size: 10GB
-    - Displayed size: 9.34GB.
+>    - Specified size: 10GB
+>    - Displayed size: 9.34GB.
 [![2025-01-02-120516.png](https://i.postimg.cc/LXcDRJhk/2025-01-02-120516.png)](https://postimg.cc/zbkKFXC3)
-<br>In QuTS Hero, always use the specified size.
+>
+>In QuTS Hero, always use the specified size.
 
 ### Creating a VolumeSnapshot from a PVC  
     

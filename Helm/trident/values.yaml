@@ -5,11 +5,15 @@
 replicaCount: 1
 
 tridentOperator:
-  image: qnapsystem/qnap-csi-operator:v1.5.1
-  cgiServerImage : qnapsystem/qnap-csi-backend-qts-sidecar:v1.5.1
+  image: qnapsystem/qnap-csi-operator:v1.5.2
+  cgiServerImage : qnapsystem/qnap-csi-backend-qts-sidecar:v1.5.2
   imagePullPolicy: IfNotPresent
   logLevel: debug
 
 tridentOrchestrator:
-  image: qnapsystem/qnap-csi:v1.5.1
+  image: qnapsystem/qnap-csi:v1.5.2
   debug: true
+
+# forceInstallRancherClusterRoles will install a Rancher specific ClusterRole and ClusterRoleBinding when set to true.
+# When set to false, the ClusterRole and ClusterRoleBinding will be installed only when a Rancher cluster is detected. 
+forceInstallRancherClusterRoles: false
